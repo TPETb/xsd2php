@@ -87,6 +87,14 @@ abstract class AbstractXsd2Converter
         {
             return "string";
         });
+        $this->addAliasMap("http://www.w3.org/2001/XMLSchema", "QName", function (Type $type)
+        {
+            return "string";
+        });
+        $this->addAliasMap("http://www.w3.org/2001/XMLSchema", "NCName", function (Type $type)
+        {
+            return "string";
+        });
         $this->addAliasMap("http://www.w3.org/2001/XMLSchema", "decimal", function (Type $type)
         {
             return "float";
