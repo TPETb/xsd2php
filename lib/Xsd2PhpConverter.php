@@ -9,12 +9,10 @@ use Goetas\Xsd\XsdToPhp\Structure\PHPClass;
 use Doctrine\Common\Inflector\Inflector;
 use Goetas\XML\XSDReader\Schema\Type\BaseComplexType;
 use Goetas\Xsd\XsdToPhp\Structure\PHPProperty;
-use Goetas\XML\XSDReader\Schema\Attribute\AttributeReal;
 use Goetas\XML\XSDReader\Schema\Type\ComplexType;
 use Goetas\XML\XSDReader\Schema\Element\Element;
 use Goetas\XML\XSDReader\Schema\Item;
 use Goetas\XML\XSDReader\Schema\Attribute\Group as AttributeGroup;
-use Goetas\Xsd\XsdToPhp\Structure\PHPTrait;
 use Goetas\Xsd\XsdToPhp\Structure\PHPType;
 use Goetas\XML\XSDReader\Schema\Element\Group;
 use Goetas\XML\XSDReader\Schema\Type\SimpleType;
@@ -88,6 +86,7 @@ class Xsd2PhpConverter extends AbstractXsd2Converter
 
     private function visitTypeBase(PHPClass $class, Type $type)
     {
+        $class->setAbstract($type->isAbstract());
         if ($type instanceof BaseComplexType) {
             $this->visitBaseComplexType($class, $type);
         }
@@ -99,52 +98,28 @@ class Xsd2PhpConverter extends AbstractXsd2Converter
         }
     }
 
-    private function visitGroup(Schema $schema, Group $group)
+    private function visitGroup(PHPClass $class, Schema $schema, Group $group)
     {
-        if (! isset($this->classes[spl_object_hash($group)])) {
-            $this->classes[spl_object_hash($group)]["class"] = $trait = new PHPTrait();
-            $trait->setName(Inflector::classify($group->getName()));
-            $trait->setDoc($group->getDoc());
-
-            if (! isset($this->namespaces[$schema->getTargetNamespace()])) {
-                throw new Exception(sprintf("Can't find a PHP equivalent namespace for %s namespace", $schema->getTargetNamespace()));
-            }
-            $trait->setNamespace($this->namespaces[$schema->getTargetNamespace()]);
-
-            foreach ($group->getElements() as $childGroup) {
-                if ($childGroup instanceof Group) {
-                    $trait->addTrait($this->visitGroup($schema, $childGroup));
-                } else {
-                    $property = $this->visitElement($trait, $schema, $childGroup);
-                    $trait->addProperty($property);
-                }
+        foreach ($group->getElements() as $childGroup) {
+            if ($childGroup instanceof Group) {
+                $this->visitGroup($class, $schema, $childGroup);
+            } else {
+                $property = $this->visitElement($class, $schema, $childGroup);
+                $class->addProperty($property);
             }
         }
-        return $this->classes[spl_object_hash($group)]["class"];
     }
 
-    private function visitAttributeGroup(Schema $schema, AttributeGroup $att)
+    private function visitAttributeGroup(PHPClass $class, Schema $schema, AttributeGroup $att)
     {
-        if (! isset($this->classes[spl_object_hash($att)])) {
-            $this->classes[spl_object_hash($att)]["class"] = $trait = new PHPTrait();
-            $trait->setName(Inflector::classify($att->getName()));
-            $trait->setDoc($att->getDoc());
-
-            if (! isset($this->namespaces[$schema->getTargetNamespace()])) {
-                throw new Exception(sprintf("Can't find a PHP equivalent namespace for %s namespace", $schema->getTargetNamespace()));
-            }
-            $trait->setNamespace($this->namespaces[$schema->getTargetNamespace()]);
-
-            foreach ($att->getAttributes() as $childAttr) {
-                if ($childAttr instanceof AttributeGroup) {
-                    $trait->addTrait($this->visitAttributeGroup($schema, $childAttr));
-                } else {
-                    $property = $this->visitAttribute($trait, $schema, $childAttr);
-                    $trait->addProperty($property);
-                }
+        foreach ($att->getAttributes() as $childAttr) {
+            if ($childAttr instanceof AttributeGroup) {
+                $this->visitAttributeGroup($class, $schema, $childAttr);
+            } else {
+                $property = $this->visitAttribute($class, $schema, $childAttr);
+                $class->addProperty($property);
             }
         }
-        return $this->classes[spl_object_hash($att)]["class"];
     }
 
     private function visitElementDef(Schema $schema, ElementDef $element)
@@ -198,7 +173,10 @@ class Xsd2PhpConverter extends AbstractXsd2Converter
 
         $name = Inflector::classify($type->getName());
         if ($name && substr($name, -4)!=='Type') {
-            $name .= "Type";
+            //$name .= "Type";
+        }
+        if($name[0]=="T" && $name!=="TDefinitions"){
+            $name = substr($name, 1);
         }
 
         if (! isset($this->namespaces[$schema->getTargetNamespace()])) {
@@ -226,6 +204,7 @@ class Xsd2PhpConverter extends AbstractXsd2Converter
             list ($name, $ns) = $this->findPHPName($type);
             $class->setName($name);
             $class->setNamespace($ns);
+
             $class->setDoc($type->getDoc() . PHP_EOL . "XSD Type: " . ($type->getName() ?  : 'anonymous'));
 
             $this->visitTypeBase($class, $type);
@@ -259,8 +238,7 @@ class Xsd2PhpConverter extends AbstractXsd2Converter
         foreach ($type->getElements() as $element) {
 
             if ($element instanceof Group) {
-                $trait = $this->visitGroup($schema, $element);
-                $class->addTrait($trait);
+                $this->visitGroup($class, $schema, $element);
             } else {
                 $property = $this->visitElement($class, $schema, $element);
                 $class->addProperty($property);
@@ -328,8 +306,7 @@ class Xsd2PhpConverter extends AbstractXsd2Converter
 
         foreach ($type->getAttributes() as $attr) {
             if ($attr instanceof AttributeGroup) {
-                $trait = $this->visitAttributeGroup($schema, $attr);
-                $class->addTrait($trait);
+                $this->visitAttributeGroup($class, $schema, $attr);
             } else {
                 $property = $this->visitAttribute($class, $schema, $attr);
                 $class->addProperty($property);

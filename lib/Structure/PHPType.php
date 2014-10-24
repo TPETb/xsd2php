@@ -6,6 +6,8 @@ abstract class PHPType
 
     protected $name;
 
+    protected $abstract = false;
+
     protected $namespace;
 
     protected $doc;
@@ -58,4 +60,16 @@ abstract class PHPType
     {
         return "{$this->namespace}\\{$this->name}";
     }
+
+    public function getAbstract()
+    {
+        return $this->abstract;
+    }
+
+    public function setAbstract($abstract)
+    {
+        $this->abstract = $abstract;
+        return $this;
+    }
+
 }

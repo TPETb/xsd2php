@@ -404,7 +404,7 @@ class ClassGenerator
             $str .= $this->addValueMethods($prop, $class);
         } else {
 
-            if ($prop->getType() && $prop->getType()->hasPropertyInHierarchy('__value')) {
+            if ($prop->getType() && !$this->isNativeType($prop->getType()) && $prop->getType()->hasPropertyInHierarchy('__value')) {
                 $str .= $this->handleValueMethods($prop, $class);
             }
             if ($type && $type instanceof PHPClassOf) {
@@ -507,6 +507,11 @@ class ClassGenerator
             $str .= 'trait ';
             $str .= $type->getName();
         } else {
+
+            if ($type->getAbstract()) {
+                $str .= 'abstract ';
+            }
+
             $str .= 'class ';
             $str .= $type->getName();
 

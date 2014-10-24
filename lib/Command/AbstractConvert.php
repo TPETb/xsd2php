@@ -107,8 +107,10 @@ abstract class AbstractConvert extends Console\Command\Command
                 }
                 list($xml, $type) = explode(";", $val, 2);
                 list($xmlNs, $name) = explode("#", $xml, 2);
-                $converter->addAliasMap($xmlNs, $name, $type);
-                $output->writeln("Alias <comment>$xmlNs</comment>#<info>$name $type</info> ");
+                $converter->addAliasMap($xmlNs, $name, function () use($type) {
+                    return $type;
+                });
+                $output->writeln("Alias <comment>$xmlNs</comment>#<comment>$name</comment>  => <info>$type</info> ");
             }
         }
         $reader = new SchemaReader();
