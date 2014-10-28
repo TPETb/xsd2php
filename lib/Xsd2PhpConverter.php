@@ -340,7 +340,7 @@ class Xsd2PhpConverter extends AbstractXsd2Converter
     private function visitAttribute(PHPType $class, Schema $schema, AttributeItem $attribute)
     {
         $property = new PHPProperty();
-        $property->setName(Inflector::camelize($attribute->getName()));
+        $property->setName($attribute->getName());
         $property->setType($this->findPHPType($class, $schema, $attribute));
         $property->setDoc($attribute->getDoc());
         return $property;
@@ -357,7 +357,7 @@ class Xsd2PhpConverter extends AbstractXsd2Converter
     private function visitElement(PHPType $class, Schema $schema, ElementSingle $element, $arrayize = true)
     {
         $property = new PHPProperty();
-        $property->setName(Inflector::camelize($element->getName()));
+        $property->setName($element->getName());
 
         if (($t = $element->getType()) && ($itemOfArray = $this->isArray($t))) {
             $property->setType(new PHPClassOf($this->visitElement($class, $schema, $itemOfArray, false)));

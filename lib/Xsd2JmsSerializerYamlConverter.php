@@ -221,7 +221,7 @@ class Xsd2JmsSerializerYamlConverter extends AbstractXsd2Converter
             $data["properties"] = array();
         }
         foreach ($this->flattElements($type) as $element) {
-            $data["properties"][Inflector::camelize($element->getName())] = $this->visitElement($class, $schema, $element);
+            $data["properties"][$element->getName()] = $this->visitElement($class, $schema, $element);
         }
     }
 
@@ -250,7 +250,7 @@ class Xsd2JmsSerializerYamlConverter extends AbstractXsd2Converter
             $data["properties"] = array();
         }
         foreach ($this->flattAttributes($type) as $attr) {
-            $data["properties"][Inflector::camelize($attr->getName())] = $this->visitAttribute($class, $schema, $attr);
+            $data["properties"][$attr->getName()] = $this->visitAttribute($class, $schema, $attr);
         }
     }
 
