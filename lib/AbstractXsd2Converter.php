@@ -191,6 +191,21 @@ abstract class AbstractXsd2Converter
             return "string";
         });
 
+        $this->addAliasMap("http://www.w3.org/2001/XMLSchema", "hexBinary", function (Type $type)
+        {
+            return "string";
+        });
+
+        $this->addAliasMap("http://www.w3.org/2001/XMLSchema", "unsignedByte", function (Type $type)
+        {
+            return "string";
+        });
+
+        $this->addAliasMap("http://www.w3.org/2001/XMLSchema", "unsignedShort", function (Type $type)
+        {
+            return "string";
+        });
+
         $this->addArrayTypeCallback(function (Type $type)
         {
             if ($type instanceof ComplexType && ! $type->getParent() && ! $type->getAttributes() && count($type->getElements()) === 1) {

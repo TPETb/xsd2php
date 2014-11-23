@@ -23,6 +23,9 @@ abstract class PHPType
 
     public function setName($name)
     {
+        // Replace forbidden characters
+        $name = str_replace(['.'], '_', $name);
+
         $this->name = $name;
         return $this;
     }
